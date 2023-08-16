@@ -60,7 +60,7 @@ buddy_initialize(void* memory, unsigned int num_of_blocks)
 	unsigned int levels = ceil(log(num_of_blocks) / log(2));
 
 	buddy_allocator_t* buddy = (buddy_allocator_t*)memory;
-	//void* offset = (uintptr_t)memory + BLOCK_SIZE;
+	// void* offset = (uintptr_t)memory + BLOCK_SIZE;
 	buddy_block_t* block = (buddy_block_t*)((uintptr_t)memory + BLOCK_SIZE);
 
 	buddy->levels = levels;
@@ -136,17 +136,17 @@ void*
 buddy_allocation(size_t size, buddy_allocator_t* buddy)
 {
 	printf("------------------------\n");
-	//buddy_display(buddy);
+	// buddy_display(buddy);
 
 	uintptr_t ret = NULL;
 	unsigned int num_of_blocks = size / BLOCK_SIZE;
 	unsigned int level = ceil(log(num_of_blocks) / log(2));
 	unsigned int tmp_level = level;
 	
-	//if(num_of_blocks == 1)
-	//	printf("( %d ) Block requested!\n\n", num_of_blocks);
-	//else
-	//	printf("( %d ) Blocks requested!\n\n", num_of_blocks);
+	// if(num_of_blocks == 1)
+	// 	printf("( %d ) Block requested!\n\n", num_of_blocks);
+	// else
+	// 	printf("( %d ) Blocks requested!\n\n", num_of_blocks);
 
 	if (num_of_blocks > 512 || num_of_blocks <= 0)
 		return NULL;
@@ -159,7 +159,7 @@ buddy_allocation(size_t size, buddy_allocator_t* buddy)
 			printf("sta je ovo ");
 		buddy->array_of_levels[level] = buddy->array_of_levels[level]->next;
 
-		//buddy_display(buddy);
+		// buddy_display(buddy);
 
 		if(tmp_level)
 			printf("\n==[ %d ] Blocks - Allocated successfully!\n\n", 0x1 << tmp_level);
@@ -184,7 +184,7 @@ buddy_allocation(size_t size, buddy_allocator_t* buddy)
 		return NULL;
 	}
 		
-	//buddy_display(buddy);
+	// buddy_display(buddy);
 
 	if (tmp_level)
 		printf("\n==[ %d ] Blocks - Allocated successfully!\n\n", 0x1 << tmp_level);
@@ -208,7 +208,7 @@ buddy_display(buddy_allocator_t* buddy)
 		if (buddy->array_of_levels[i] != NULL)
 		{
 			printf("%d. -> IMA", i);
-			//printf(" %p\n", buddy->array_of_levels[i]);
+			// printf(" %p\n", buddy->array_of_levels[i]);
 			
 			tmp_blk = buddy->array_of_levels[i];
 
@@ -247,8 +247,9 @@ buddy_free(buddy_allocator_t* buddy, buddy_block_t* blk, size_t size)
 
 	while (iter)
 	{
-		//printf("BLK :%p + %x = %p\n\n", blk, BLOCK_SIZE * (0x1 << level), iter);
-		//if ((char*)blk + BLOCK_SIZE * (0x1 << level) == iter)
+		// printf("BLK :%p + %x = %p\n\n", blk, BLOCK_SIZE * (0x1 << level), iter);
+		// if ((char*)blk + BLOCK_SIZE * (0x1 << level) == iter)
+
 		if ((uintptr_t)blk + BLOCK_SIZE * (0x1 << level) == iter)
 		{
 			if (prev != NULL)

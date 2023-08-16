@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Slab_allocator.h"
 #include <math.h>
 #include <stdint.h>
@@ -58,7 +57,7 @@ small_buffer_caches_init()
 	{
 		kmem_cache_t* iter_cache = beginning_cache + i - MIN_BUF;
 
-		//strncpy_s(iter_cache->name, NAME_LENGTH - 1, "Cache_small_buffer", NAME_LENGTH - 1);
+		// strncpy_s(iter_cache->name, NAME_LENGTH - 1, "Cache_small_buffer", NAME_LENGTH - 1);
 
 		if (i == 5)
 			sprintf_s(iter_cache->name, NAME_LENGTH, "Cache_small_buffer_%d(%dst)", i, i - MIN_BUF + 1);
@@ -87,9 +86,9 @@ small_buffer_caches_init()
 		size_t x = BLOCK_SIZE;
 
 		// At least 4 objects per slab. Otherwise partial_slab makes no sense
-		//for (x = BLOCK_SIZE; ((x - sizeof(slab_header_t)) / (beginning_cache->size_of_slot + 1 / 8) + 1) < 5; x += BLOCK_SIZE);
+		// for (x = BLOCK_SIZE; ((x - sizeof(slab_header_t)) / (beginning_cache->size_of_slot + 1 / 8) + 1) < 5; x += BLOCK_SIZE);
 
-		//while (x - sizeof(slab_header_t) < iter_cache->size_of_slot)
+		// while (x - sizeof(slab_header_t) < iter_cache->size_of_slot)
 		//	x += BLOCK_SIZE;
 
 		iter_cache->slab_size_in_bytes = (unsigned)ceil(iter_cache->size_of_slot * 1.0 / BLOCK_SIZE) * BLOCK_SIZE;
@@ -137,15 +136,17 @@ kmem_cache_create(const char* name, size_t size, void (*ctor)(void*), void (*dto
 
 	/*
 	* 
-		s - slab size 
-		h - header size
-		p = s- h  // Space without the Header
-		st - slot size
-		num - Number of Slots
-		l - array level of bits
+		s -> Slab size 
+		h -> Header size
+		p -> Space without the Header
 
+		p = s - h
 
-		p = num * (st + (1/32))
+		st  -> Slot size
+		num -> Number of Slots
+		l   -> Array level of bits
+
+		p   = num * (st + (1/32))
 		num = floor(p*1. / (st + (1/32)))
 
 		l = (unsigned)ceil(num*1. /32 )
@@ -156,7 +157,9 @@ kmem_cache_create(const char* name, size_t size, void (*ctor)(void*), void (*dto
 	unsigned st = ret_cache->size_of_slot;
 	unsigned l = p - p /st *st; // array of bits
 	unsigned num = (unsigned)floor(( p - l *4) * 1. / st);
-	if (num == 0) {
+
+	if (num == 0)
+	{
 		num = 1;
 		l = 1;
 		// pocetni slot
@@ -165,10 +168,12 @@ kmem_cache_create(const char* name, size_t size, void (*ctor)(void*), void (*dto
 
 	l = 1;
 	num = 1;
-	while (num * st + l * 4 < p) {
+	while (num * st + l * 4 < p)
+	{
 		num++;
 		l = (unsigned)ceil(num * 1. / 32); 
 	}
+
 	num--;
 	ret_cache->num_of_slots_in_slab = num;
 	ret_cache->layer = l;
@@ -311,7 +316,7 @@ kmem_cache_alloc(kmem_cache_t* cachep)
 	if (th_bit == -1)
 	{
 		printf("\n\nSlab allocation ERROR\n\n");
-		//position_of_free_slot_in_bits(slab);
+		// position_of_free_slot_in_bits(slab);
 		ReleaseMutex(slab_allocator->mutex);
 		return NULL;
 	}
@@ -345,7 +350,7 @@ kmem_cache_alloc(kmem_cache_t* cachep)
 		cachep->ctor(slot);
 
 	ReleaseMutex(slab_allocator->mutex);
-	//return slab->beginning_slot + th_bit * cachep->size_of_slot;
+	// return slab->beginning_slot + th_bit * cachep->size_of_slot;
 	return slot;
 }
 
@@ -382,7 +387,7 @@ add_slab(kmem_cache_t* cachep)
 	memset(tmp_slab->beginning_of_bits_array, 0, tmp_slab->levels_of_array_of_bits * sizeof(unsigned));
 
 
-	//l1
+	// l1
 	tmp_slab->next = NULL;
 
 	return tmp_slab;
@@ -456,7 +461,7 @@ degre_counter(size_t size)
 
 
 void*
-kmalloc(size_t size) // Alloacate one small memory buffer
+kmalloc(size_t size) // Allocate one small memory buffer
 {
 
 	WaitForSingleObject(slab_allocator->mutex, INFINITE);
@@ -510,7 +515,7 @@ get_slab_by_slot(kmem_cache_t* cachep, void* obj, int* what_is)
 {
 	slab_header_t* tmp_slab = cachep->partial;
 
-	//unsigned* begin_addr = tmp_slab->beginning_of_bits_array;
+	// unsigned* begin_addr = tmp_slab->beginning_of_bits_array;
 	unsigned* begin_addr;
 
 	unsigned mask = 0;
@@ -524,7 +529,7 @@ get_slab_by_slot(kmem_cache_t* cachep, void* obj, int* what_is)
 			for (int j = 0; j < 32; j++)
 			{
 				mask = 0x80000000 >> j;
-				if (((mask & *((unsigned*)begin_addr + i)))) // Trazeni bit jeste 1, tj. zauzeta je lokacija
+				if (((mask & *((unsigned*)begin_addr + i)))) // The requested bit is 1, i.e. the location is occupied
 				{
 					*what_is = 1;
 					mask = rotate_bits_right(0x7fffffff, j);
@@ -552,7 +557,7 @@ get_slab_by_slot(kmem_cache_t* cachep, void* obj, int* what_is)
 			for (int j = 0; j < 32; j++)
 			{
 				mask = 0x80000000 >> j;
-				if (((mask & *((unsigned*)begin_addr + i)))) // Trazeni bit jeste 1, tj. zauzeta je lokacija
+				if (((mask & *((unsigned*)begin_addr + i)))) // The requested bit is 1, i.e. the location is occupied
 				{
 					*what_is = 2;
 					mask = rotate_bits_right(0x7fffffff, j);
@@ -588,7 +593,7 @@ get_slab_of_buffer_by_slot(void* objp, int* what_is)
 		cachep = (kmem_cache_t*)slab_allocator + i;
 
 		// Partial
-		tmp_slab = cachep->partial; // mogui da ne
+		tmp_slab = cachep->partial;
 		while (tmp_slab)
 		{
 			begin_addr = tmp_slab->beginning_of_bits_array;
@@ -598,7 +603,7 @@ get_slab_of_buffer_by_slot(void* objp, int* what_is)
 				for (int j = 0; j < 32; j++)
 				{
 					mask = 0x80000000 >> j;
-					if (((mask & *((unsigned*)begin_addr + i)))) // Trazeni bit jeste 1, tj. zauzeta je lokacija
+					if (((mask & *((unsigned*)begin_addr + i)))) // The requested bit is 1, i.e. the location is occupied
 					{
 						*what_is = 1;
 						mask = rotate_bits_right(0x7fffffff, j);
@@ -627,7 +632,7 @@ get_slab_of_buffer_by_slot(void* objp, int* what_is)
 				for (int j = 0; j < 32; j++)
 				{
 					mask = 0x80000000 >> j;
-					if (((mask & *((unsigned*)begin_addr + i)))) // Trazeni bit jeste 1, tj. zauzeta je lokacija
+					if (((mask & *((unsigned*)begin_addr + i)))) // The requested bit is 1, i.e. the location is occupied
 					{
 						*what_is = 2;
 						mask = rotate_bits_right(0x7fffffff, j);
@@ -688,9 +693,9 @@ kmem_cache_free(kmem_cache_t* cachep, void* objp)
 				cur = cur->next;
 			}
 
-			if (cur == slab) 				      // Update list of partial slabs
+			if (cur == slab)                   // Update list of partial slabs
 				cachep->partial = cur->next;
-			else if (cur->next == slab)			  // Update list of partial slabs	
+			else if (cur->next == slab)        // Update list of partial slabs	
 				cur->next = cur->next->next;
 
 			// Put in empty
@@ -712,9 +717,9 @@ kmem_cache_free(kmem_cache_t* cachep, void* objp)
 			cur = cur->next;
 		}
 
-		if (cur == slab) 				      // Update list of full slabs
+		if (cur == slab)                      // Update list of full slabs
 			cachep->full = cur->next;
-		else if (cur->next == slab)			  // Update list of full slabs	
+		else if (cur->next == slab)           // Update list of full slabs	
 			cur->next = cur->next->next;
 
 
@@ -772,14 +777,14 @@ kfree(const void* objp)
 				cur = cur->next;
 			}
 			buddy_free(buddy, slab, slab->cache_owner->slab_size_in_bytes);
-			//if (cur == slab) 				      // Update list of partial slabs
-			//	cachep->partial = cur->next;
-			//else if (cur->next == slab)			  // Update list of partial slabs	
-			//	cur->next = cur->next->next;
+			// if (cur == slab)                 // Update list of partial slabs
+			// 	cachep->partial = cur->next;
+			// else if (cur->next == slab       // Update list of partial slabs	
+			// 	cur->next = cur->next->next;
 
-			//// Put in empty
-			//slab->next = cachep->empty;
-			//cachep->empty = slab;
+			// // Put in empty
+			// slab->next = cachep->empty;
+			// cachep->empty = slab;
 		}
 	}
 
@@ -803,7 +808,8 @@ kfree(const void* objp)
 
 
 
-		/*if (cachep->num_of_slots_in_slab == 1)
+		/*
+		if (cachep->num_of_slots_in_slab == 1)
 		{
 			slab->next = cachep->empty;
 			cachep->empty = slab;
@@ -812,12 +818,11 @@ kfree(const void* objp)
 		{
 			slab->next = cachep->partial;
 			cachep->partial = slab;
-		}*/
+		}
+		*/
 
-		// slab vrati badiju
+		// Slab returns to buddy
 		buddy_free(buddy, slab, slab->cache_owner->slab_size_in_bytes);
-
-		
 	}
 
 	kmem_cache_info(cachep);
@@ -827,8 +832,8 @@ kfree(const void* objp)
 
 
 void
-kmem_cache_info(kmem_cache_t* cachep) {
-
+kmem_cache_info(kmem_cache_t* cachep)
+{
 	WaitForSingleObject(slab_allocator->mutex, INFINITE);
 
 	if (cachep == NULL)
@@ -1071,122 +1076,10 @@ print_error_code(kmem_cache_t* cachep)
 }
 
 
-
-
-/*
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include "slab.h"
-#include "test.h"
-#include "Buddy_allocator.h"
-#include "Slab_allocator.h"
-
-#define block (1)
-#define niti (8)
-#define BLOCK_NUMBER (1000 *  block)
-#define THREAD_NUM (1 * niti) // granica za koliko niti rati
-#define ITERATIONS (1000)
-//#define ITERATIONS (8125) /// m
-//#define THREAD_NUM (9) // gr
-
-#define shared_size (7)
-
-
-void construct(void *data) {
-	static int i = 1;
-	printf_s("%d Shared object constructed.\n", i++);
-	memset(data, MASK, shared_size);
-}
-
-int check(void *data, size_t size) {
-	int ret = 1;
-	for (int i = 0; i < size; i++) {
-		if (((unsigned char *)data)[i] != MASK) {
-			ret = 0;
-		}
-	}
-
-	return ret;
-}
-
-struct objects_s {
-	kmem_cache_t *cache;
-	void *data;
-};
-
-void work(void* pdata) {
-	struct data_s data = *(struct data_s*) pdata;
-	char buffer[1024];
-	int size = 0;
-	sprintf_s(buffer, 1024, "thread cache %d", data.id);
-	kmem_cache_t *cache = kmem_cache_create(buffer, data.id, 0, 0);
-
-	struct objects_s *objs = (struct objects_s*)(kmalloc(sizeof(struct objects_s) * data.iterations));
-
-	for (int i = 0; i < data.iterations; i++) {
-
-		if (i % 100 == 0) {
-			objs[size].data = kmem_cache_alloc(data.shared);
-			objs[size].cache = data.shared;
-			assert(check(objs[size].data, shared_size));
-		}
-		else
-		{
-			objs[size].data = kmem_cache_alloc(cache);
-			objs[size].cache = cache;
-			memset(objs[size].data, MASK, data.id);
-
-		}
-		size++;
-	}
-
-	kmem_cache_info(cache);
-	kmem_cache_info(data.shared);
-
-
-	for (int i = 0; i < size; i++) {
-		//printf("%d__\n", i);
-
-		assert(check(objs[i].data, (cache == objs[i].cache) ? data.id : shared_size));
-		kmem_cache_free(objs[i].cache, objs[i].data);
-	}
-
-
-	kfree(objs);
-	kmem_cache_destroy(cache);
-}
-
-int main() {
-	void *space = malloc(BLOCK_SIZE * BLOCK_NUMBER);
-
-
-	kmem_init(space, BLOCK_NUMBER);
-	kmem_cache_t *shared = kmem_cache_create("shared object", shared_size, construct, NULL);
-
-	struct data_s data;
-	data.shared = shared;
-	data.iterations = ITERATIONS;
-	run_threads(work, &data, THREAD_NUM);
-
-	display_buddy();
-
-	free(space);
-	return 0;
-}
-
-
-
-
-*/
-
-
+/* MAIN */
 
 /*
-
-//#include <Math.h>
+#include <Math.h>
 
 
 #include "Slab_allocator.h"
@@ -1206,7 +1099,7 @@ main()
 {
 	// Initialize, try 993 and allocated 2
 	void* space = malloc(BLOCK_SIZE * NUMBER_OF_BLOCKS);
-	//buddy_allocator_t* buddy = buddy_initialize(space, 1000);
+	// buddy_allocator_t* buddy = buddy_initialize(space, 1000);
 
 	kmem_init(space, 1000);
 	kmem_cache_t* shared = kmem_cache_create("shared object", 7, NULL, NULL);
@@ -1215,7 +1108,7 @@ main()
 	printf("nesto\n");
 
 	// Display
-	//buddy_display(buddy);
+	// buddy_display(buddy);
 
 	// Allocation
 	buddy_block_t* block = buddy_allocation(2*BLOCK_SIZE, buddy);
@@ -1280,26 +1173,19 @@ main()
 			global--;
 	}
 	
-	//buddy_block_t* block_11 = buddy_allocation(32 * BLOCK_SIZE, buddy);
-	//buddy_block_t* block_8 = buddy_allocation(128 * BLOCK_SIZE, buddy);
-	//buddy_block_t* block_9 = buddy_allocation(256 * BLOCK_SIZE, buddy);
-	////buddy_block_t* block_71 = buddy_allocation(512 * BLOCK_SIZE, buddy);
+	// buddy_block_t* block_11 = buddy_allocation(32 * BLOCK_SIZE, buddy);
+	// buddy_block_t* block_8 = buddy_allocation(128 * BLOCK_SIZE, buddy);
+	// buddy_block_t* block_9 = buddy_allocation(256 * BLOCK_SIZE, buddy);
+	// // buddy_block_t* block_71 = buddy_allocation(512 * BLOCK_SIZE, buddy);
 
-	//buddy_block_t* block_74 = buddy_allocation(32 * BLOCK_SIZE, buddy);
-
+	// buddy_block_t* block_74 = buddy_allocation(32 * BLOCK_SIZE, buddy);
 
 	// Display
 	buddy_display(buddy);
 
 	printf("GLOBAL %d: \n", global);
 
-
 	return 0;
-
 }
-
-
-
-
 
 */

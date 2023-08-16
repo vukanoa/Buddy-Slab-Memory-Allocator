@@ -10,15 +10,14 @@
 #define NUM_OF_BUFFERS ((MAX_BUF) - (MIN_BUF) + (1))
 
 // Error flags
-#define ERROR_NO_MEMORY								(1)
-#define ERROR_SLAB_ALLOCATOR_FAIL					(1 << 1)
-#define ERROR_BUDDY_ALLOCATOR_FAIL					(1 << 2)
-#define ERROR_ADDING_SLAB							(1 << 3)
-#define ERROR_UNABLE_TO_FIND_SLOT_IN_TYPE_CACHES	(1 << 4)
-#define ERROR_UNABLE_TO_FIND_SLOT_IN_BUF_CACHES 	(1 << 5)
-#define SHRINKED									(1 << 6)
-#define DESTROYED									(1 << 7)
-
+#define ERROR_NO_MEMORY                             (1)
+#define ERROR_SLAB_ALLOCATOR_FAIL                   (1 << 1)
+#define ERROR_BUDDY_ALLOCATOR_FAIL                  (1 << 2)
+#define ERROR_ADDING_SLAB                           (1 << 3)
+#define ERROR_UNABLE_TO_FIND_SLOT_IN_TYPE_CACHES    (1 << 4)
+#define ERROR_UNABLE_TO_FIND_SLOT_IN_BUF_CACHES     (1 << 5)
+#define SHRINKED                                    (1 << 6)
+#define DESTROYED                                   (1 << 7)
 
 #define NUMBER_OF_CACHES_IN_FIRST_BLOCK() ((sizeof(slab_allocator_t)) + sizeof(buddy));
 
@@ -92,5 +91,3 @@ void print_all_buffer_caches();
 void print_error_code(kmem_cache_t* cachep);
 void slab_display();
 void display_buddy();
-
-
